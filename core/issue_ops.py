@@ -4,9 +4,7 @@ IcestoneTech LFX Project
 """
 import time
 from .auth import jira_request, agile_request
-
-PROJECT_KEY = "LFX"
-SPRINT_ID = 103  # Sprint 1 — Proof Infra
+from .config import CFG
 
 # Issue Type IDs (LFX Classic Company-Managed)
 ISSUE_TYPES = {
@@ -27,7 +25,7 @@ def create_epic(summary: str, description_adf: dict, priority: str = "High", due
     """创建 Epic，返回 issue key (e.g. 'LFX-1')"""
     payload = {
         "fields": {
-            "project": {"key": PROJECT_KEY},
+            "project": {"key": CFG.project_key},
             "issuetype": {"id": ISSUE_TYPES["Epic"]},
             "summary": summary,
             "description": description_adf,
@@ -50,7 +48,7 @@ def create_story(summary: str, description_adf: dict, epic_key: str,
     """
     payload = {
         "fields": {
-            "project": {"key": PROJECT_KEY},
+            "project": {"key": CFG.project_key},
             "issuetype": {"id": ISSUE_TYPES["Story"]},
             "summary": summary,
             "description": description_adf,
@@ -76,7 +74,7 @@ def create_feature(summary: str, description_adf: dict, epic_key: str,
     """
     payload = {
         "fields": {
-            "project": {"key": PROJECT_KEY},
+            "project": {"key": CFG.project_key},
             "issuetype": {"id": ISSUE_TYPES[issue_type]},
             "summary": summary,
             "description": description_adf,
@@ -94,12 +92,19 @@ def create_feature(summary: str, description_adf: dict, epic_key: str,
     return result["key"]
 
 
-def add_to_sprint(issue_keys: list, sprint_id: int = SPRINT_ID):
+def add_to_sprint(issue_keys: list, sprint_id: int = None):
     """
     将 Issues 加入 Sprint
     ⚠️ 创建 Issue 后必须手动调用此函数，Issue 不会自动归入 Sprint
     ⚠️ 必须用 agile API（/rest/agile/1.0/），不是 /rest/api/3/
+    ⚠️ sprint_id 不传时自动获取 active sprint
     """
+    if sprint_id is None:
+        from .sprint_ops import get_active_sprint
+        active = get_active_sprint()
+        if not active:
+            raise RuntimeError("No active sprint found and no sprint_id provided")
+        sprint_id = active["id"]
     result, err = agile_request("POST", f"/sprint/{sprint_id}/issue", {
         "issues": issue_keys
     })

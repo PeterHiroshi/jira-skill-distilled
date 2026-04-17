@@ -14,10 +14,9 @@ import base64
 import json
 import os
 
-JIRA_BASE = "https://icestonetech.atlassian.net"
-EMAIL = "peter.ma@icestonetech.com"
-TOKEN = open(os.path.expanduser("~/.hermes/secrets/jira_token")).read().strip()
-auth = base64.b64encode(f"{EMAIL}:{TOKEN}".encode()).decode()
+from .config import CFG
+
+auth = base64.b64encode(f"{CFG.email}:{CFG.token}".encode()).decode()
 
 
 def upload_attachment(issue_key: str, file_path: str) -> dict:
@@ -49,7 +48,7 @@ def upload_attachment(issue_key: str, file_path: str) -> dict:
     ).encode() + file_content + f"\r\n--{boundary}--\r\n".encode()
 
     req = urllib.request.Request(
-        f"{JIRA_BASE}/rest/api/3/issue/{issue_key}/attachments",
+        f"{CFG.jira_base}/rest/api/3/issue/{issue_key}/attachments",
         data=body,
         method="POST",
         headers={
