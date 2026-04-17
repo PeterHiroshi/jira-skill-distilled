@@ -1,6 +1,5 @@
 """
 templates/adf_builder.py — Atlassian Document Format 构造器
-IcestoneTech LFX Project
 
 ⚠️ Jira 描述字段必须使用 ADF 格式（纯文本会被拒绝）
 """

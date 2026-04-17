@@ -230,7 +230,7 @@ def set_story_points(issue_key: str, points: int):
     """
     设置 Story Points（通过 label 方式：sp-N）
 
-    ⚠️ LFX 项目用 label 而非 customfield 记录 SP
+    ⚠️ 如果项目用 label 而非 customfield 记录 SP
     先清除旧的 sp-* label，再加新的
     """
     # 获取当前 labels

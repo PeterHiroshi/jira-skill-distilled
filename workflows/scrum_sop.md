@@ -1,6 +1,6 @@
-# Scrum Master SOP — LFX 完整工作流
+# Scrum Master SOP — 完整工作流
 
-> IcestoneTech LFX 项目 Scrum Master 操作规程
+> 通用 Scrum Master 操作规程（基于 Jira REST API v3 + Agile API）
 
 ---
 
@@ -9,8 +9,8 @@
 ### 步骤
 1. 从 Backlog 选取 P0/P1 Feature，估算 Story Points（用 `sp-N` label）
 2. 建立三层结构：**Epic → Story → Feature/Task**（顺序不能错）
-3. 为每个 Issue 分配 `backend`/`frontend`/`qa` label
-4. 将所有 Issue 加入 Sprint：`agile_request("POST", f"/sprint/{SPRINT_ID}/issue", ...)`
+3. 为每个 Issue 分配角色 label（`backend`/`frontend`/`qa`）
+4. 将所有 Issue 加入 Sprint：`add_to_sprint(["PROJ-25", "PROJ-26"])`
 5. 确认 Improvement 挂在对应 Feature 下（不单独排期）
 
 ### Issue 创建顺序
@@ -24,20 +24,20 @@
 
 ---
 
-## Daily Standup (09:30 Shanghai)
+## Daily Standup
 
 ### 查看阻塞
 ```python
-# 找出有 Blocks 关系且未完成的 Issues
 blocked_issues = search_issues(
-    "project = LFX AND issueLinksType = 'is blocked by' AND status != Done AND sprint = 103"
+    f"project = {CFG.project_key} AND issueLinksType = 'is blocked by' AND status != Done AND sprint in openSprints()"
 )
 ```
 
 ### 按角色过滤
 ```python
-# 后端今日任务
-be_tasks = search_issues("project = LFX AND labels = backend AND sprint = 103 AND status = 'In Progress'")
+be_tasks = search_issues(
+    f"project = {CFG.project_key} AND labels = backend AND sprint in openSprints() AND status = 'In Progress'"
+)
 ```
 
 ---
@@ -52,7 +52,7 @@ be_tasks = search_issues("project = LFX AND labels = backend AND sprint = 103 AN
    └─ 设置 Epic Link 同上游 Epic：set_epic_link(fix_key, epic_key)
    └─ 设置阻塞：link_blocks(bug_key, fix_key)  # Bug 阻塞 Fix
 
-3. Fix 合并后：update_status(bug_key, "Done")
+3. Fix 合并后：smart_transition(bug_key, "done")
 ```
 
 ---
@@ -60,14 +60,12 @@ be_tasks = search_issues("project = LFX AND labels = backend AND sprint = 103 AN
 ## Sprint Review
 
 ```python
-# 演示：已完成的 Feature
 done_features = search_issues(
-    "project = LFX AND issuetype = Feature AND status = Done AND sprint = 103"
+    f"project = {CFG.project_key} AND issuetype = Feature AND status = Done AND sprint in openSprints()"
 )
 
-# 遗留：未关闭的 Bug
 open_bugs = search_issues(
-    "project = LFX AND issuetype = Bug AND status != Done AND sprint = 103"
+    f"project = {CFG.project_key} AND issuetype = Bug AND status != Done AND sprint in openSprints()"
 )
 ```
 
@@ -76,7 +74,9 @@ open_bugs = search_issues(
 ## Retrospective 质量指标
 
 ```python
-all_issues = search_issues("project = LFX AND sprint = 103", max_results=100)
+all_issues = search_issues(
+    f"project = {CFG.project_key} AND sprint in openSprints()", max_results=100
+)
 
 features = [i for i in all_issues if i["fields"]["issuetype"]["name"] == "Feature"]
 bugs = [i for i in all_issues if i["fields"]["issuetype"]["name"] == "Bug"]
@@ -91,13 +91,13 @@ print(f"质量比率: {len(bugs)} bugs / {len(features)} features = {quality_rat
 
 | 文档类型 | 上传到 | 示例 |
 |----------|--------|------|
-| PRD | 对应 Epic | `upload_attachment("LFX-1", "docs/prd.pdf")` |
-| 设计稿/原型 | 对应 Feature | `upload_attachment("LFX-6", "docs/design.pdf")` |
-| 测试报告 | 对应 Task | `upload_attachment("LFX-10", "docs/test-report.pdf")` |
+| PRD | 对应 Epic | `upload_attachment("PROJ-1", "docs/prd.pdf")` |
+| 设计稿/原型 | 对应 Feature | `upload_attachment("PROJ-6", "docs/design.pdf")` |
+| 测试报告 | 对应 Task | `upload_attachment("PROJ-10", "docs/test-report.pdf")` |
 
 > ⚠️ 禁止在本地 workspace 创建 Scrum 文件（Sprint Plan、Kanban、User Stories 等）
 > ⚠️ 所有 PM 操作直接通过 Jira API 执行
 
 ---
 
-*Kael | IcestoneTech Scrum Master SOP v1.0*
+*基于 Kael 的 Scrum Master SOP，通用化改造 by Forge*

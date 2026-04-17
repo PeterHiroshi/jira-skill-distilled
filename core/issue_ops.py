@@ -1,22 +1,28 @@
 """
 core/issue_ops.py — Issue CRUD 操作
-IcestoneTech LFX Project
+
+Issue Type IDs 从 jira-config.json 的 issue_types 字段读取。
+见 examples/jira-config.example.json
 """
 import time
 from .auth import jira_request, agile_request
 from .config import CFG
 
-# Issue Type IDs (LFX Classic Company-Managed)
-ISSUE_TYPES = {
-    "Epic":        "10000",  # 🟣 史诗/战略主题
-    "Story":       "10008",  # 📖 用户故事 (挂在 Epic 下)
-    "Task":        "10054",  # ✅ 通用任务
-    "Sub-task":    "10055",  # 🔹 子任务
-    "Feature":     "10050",  # 💡 新功能开发
-    "Bug":         "10051",  # 🐛 缺陷报告
-    "Fix":         "10052",  # 🔧 Bug 修复
-    "Improvement": "10053",  # ✨ 优化改进
-}
+
+def _get_type_id(type_name: str) -> str:
+    """从配置获取 Issue Type ID，缺失时报错并给出提示"""
+    if not CFG.issue_types:
+        raise RuntimeError(
+            f"issue_types not configured. Add issue_types to jira-config.json. "
+            f"See examples/jira-config.example.json"
+        )
+    tid = CFG.issue_types.get(type_name)
+    if not tid:
+        raise RuntimeError(
+            f"Issue type '{type_name}' not found in config. "
+            f"Available: {list(CFG.issue_types.keys())}"
+        )
+    return tid
 
 PRIORITIES = ["Highest", "High", "Medium", "Low", "Lowest"]
 
@@ -26,7 +32,7 @@ def create_epic(summary: str, description_adf: dict, priority: str = "High", due
     payload = {
         "fields": {
             "project": {"key": CFG.project_key},
-            "issuetype": {"id": ISSUE_TYPES["Epic"]},
+            "issuetype": {"id": _get_type_id("Epic")},
             "summary": summary,
             "description": description_adf,
             "priority": {"name": priority},
@@ -49,7 +55,7 @@ def create_story(summary: str, description_adf: dict, epic_key: str,
     payload = {
         "fields": {
             "project": {"key": CFG.project_key},
-            "issuetype": {"id": ISSUE_TYPES["Story"]},
+            "issuetype": {"id": _get_type_id("Story")},
             "summary": summary,
             "description": description_adf,
             "priority": {"name": priority},
@@ -75,7 +81,7 @@ def create_feature(summary: str, description_adf: dict, epic_key: str,
     payload = {
         "fields": {
             "project": {"key": CFG.project_key},
-            "issuetype": {"id": ISSUE_TYPES[issue_type]},
+            "issuetype": {"id": _get_type_id(issue_type)},
             "summary": summary,
             "description": description_adf,
             "priority": {"name": priority},

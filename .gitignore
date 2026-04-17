@@ -1,1 +1,7 @@
-# 空行（不忽略任何目录）
+# Secrets & project-specific config
+jira-config.json
+secrets/
+
+# Python
+__pycache__/
+*.pyc

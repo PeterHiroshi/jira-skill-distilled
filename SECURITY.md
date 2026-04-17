@@ -1,14 +1,29 @@
-# ⚠️ 安全说明
+# Security
 
-此仓库为**私有（Private）**仓库。以下信息**不应提交**到 Git：
+## Credentials
 
-- Jira API Token（保存在 `~/.hermes/secrets/jira_token`）
-- GitHub PAT Token
-- 任何明文密码或密钥
+- Jira API Token — 通过以下方式之一配置（优先级从高到低）：
+  1. 环境变量 `JIRA_TOKEN`
+  2. `jira-config.json` 中的 `token` 字段
+  3. Token 文件：`secrets/jira_token`、`~/.config/jira/token`、`~/.jira/token`
 
-代码中通过读取本地文件获取 Token：
+## 安全实践
+
 ```python
-TOKEN = open(os.path.expanduser("~/.hermes/secrets/jira_token")).read().strip()
+# ✅ 使用环境变量
+import os
+TOKEN = os.environ["JIRA_TOKEN"]
+
+# ✅ 使用 config（自动处理）
+from core.config import CFG
+# CFG.token 已按优先级加载
+
+# ❌ 不要硬编码 token
+TOKEN = "atatt_xxx..."  # NEVER DO THIS
 ```
 
-如需分享代码，请先移除所有敏感信息。
+## .gitignore
+
+确保以下文件不会被提交：
+- `jira-config.json`（含 token）
+- `secrets/`

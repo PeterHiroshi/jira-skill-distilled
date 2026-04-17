@@ -1,6 +1,5 @@
 """
 core/link_ops.py — Issue 关联操作
-IcestoneTech LFX Project
 
 关联规则图谱：
     Epic

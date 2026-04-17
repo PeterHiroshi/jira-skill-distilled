@@ -1,6 +1,6 @@
 # ⚠️ 已知坑 & 解决方案
 
-> 来自 IcestoneTech LFX 项目实战经验，避免踩重复的坑。
+> 来自实战经验，避免踩重复的坑。
 
 ---
 
@@ -142,11 +142,11 @@ jira_request("POST", "/search/jql", {
 
 ---
 
-## 11. execute_code sandbox 无 curl 命令
+## 11. Token 路径配置
 
-**坑**：在 hermes execute_code sandbox 中，`curl` 不可用。
+**坑**：不同 agent 的 token 存储位置不同，硬编码路径会找不到文件。
 
-**解**：全部使用 Python `urllib.request`（内置，无需安装）。
+**解**：config.py 按优先级搜索多个路径，也支持 `JIRA_TOKEN` 环境变量。详见 `core/config.py`。
 
 ---
 
@@ -158,4 +158,4 @@ jira_request("POST", "/search/jql", {
 
 ---
 
-*维护者：Kael | 基于 LFX Sprint 1 实战整理*
+*基于 Kael 的实战整理，通用化改造 by Forge*

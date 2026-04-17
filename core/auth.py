@@ -1,8 +1,7 @@
 """
 core/auth.py — Jira API 认证 & 基础客户端
-IcestoneTech LFX Project
 
-配置从 core.config 集中读取，支持环境变量覆盖。
+配置从 core.config 集中读取。
 """
 import urllib.request
 import urllib.error

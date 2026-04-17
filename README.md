@@ -1,19 +1,37 @@
-# 🤖 Kael PM — Jira Skill 蒸馏版
+# 🤖 Jira Skill 蒸馏版
 
-> **IcestoneTech Scrum 工作流完整指南**  
+> **Scrum 工作流完整指南**  
 > 基于实战经验蒸馏，涵盖 Jira REST API v3 + Agile API 全操作手册
+> 适用于 Classic Company-Managed Scrum 项目
 
 ---
 
-## 📋 项目信息
+## 📋 快速配置
 
-| 字段 | 值 |
-|------|-----|
-| **Jira 站点** | `https://icestonetech.atlassian.net` |
-| **项目** | LFX (LimFx, Company-Managed Classic Scrum) |
-| **项目 ID** | 10067 |
-| **Board ID** | 35 |
-| **Sprint 1 ID** | 103 (2026-04-14 ~ 04-28) |
+创建 `jira-config.json`（参考 `examples/jira-config.example.json`）：
+
+```json
+{
+  "jira_base": "https://your-org.atlassian.net",
+  "email": "you@your-org.com",
+  "project_key": "PROJ",
+  "board_id": 1,
+  "issue_types": {
+    "Epic": "10000",
+    "Story": "10008",
+    "Feature": "10050",
+    "Task": "10054",
+    "Sub-task": "10055",
+    "Bug": "10051",
+    "Fix": "10052",
+    "Improvement": "10053"
+  }
+}
+```
+
+或使用环境变量：`JIRA_BASE`、`JIRA_EMAIL`、`JIRA_PROJECT_KEY`、`JIRA_BOARD_ID`、`JIRA_TOKEN`
+
+> ⚠️ Issue Type ID 因项目不同，用 `GET /rest/api/3/issuetype` 查询你的项目的 ID
 
 ---
 
@@ -21,23 +39,27 @@
 
 ```
 jira-skill-distilled/
+├── SKILL.md               # AgentSkill 入口
 ├── README.md              # 本文件 — 快速导航
+├── jira-config.json       # 项目配置（需自行创建，已 gitignore）
 ├── core/
-│   ├── config.py          # 🆕 集中配置（env var 覆盖支持）
+│   ├── config.py          # 集中配置（env var + config file）
 │   ├── auth.py            # 认证 & 基础 API 客户端
 │   ├── issue_ops.py       # Issue CRUD 操作
-│   ├── sprint_ops.py      # 🆕 Sprint 管理（auto active sprint）
-│   ├── dev_ops.py         # 🆕 研发日常操作（assign/worklog/JQL shortcuts）
+│   ├── sprint_ops.py      # Sprint 管理 & 查询
+│   ├── dev_ops.py         # 研发日常操作（领任务/工时/评论/JQL shortcuts）
 │   ├── link_ops.py        # Issue 关联 (Polaris, Blocks, Relates)
 │   └── attachment_ops.py  # 文件附件上传
 ├── workflows/
 │   └── scrum_sop.md       # 完整 Scrum Master SOP
 ├── reference/
-│   ├── issue_types.md     # Issue 类型 & ID 速查
-│   ├── issue_map.md       # LFX Sprint 1 全量 Issue 映射表
+│   ├── issue_types.md     # Issue 类型 & 层级速查
 │   └── pitfalls.md        # 已知坑 & 解决方案
-└── templates/
-    └── adf_builder.py     # ADF (Atlassian Document Format) 构造器
+├── templates/
+│   └── adf_builder.py     # ADF (Atlassian Document Format) 构造器
+└── examples/
+    ├── jira-config.example.json  # 配置文件模板
+    └── issue_map_lfx.md          # LFX 项目 Issue 映射示例
 ```
 
 ---
@@ -45,29 +67,37 @@ jira-skill-distilled/
 ## 🚀 快速开始
 
 ```python
-# 1. 配置（支持环境变量覆盖）
-from core.config import CFG
-# CFG.jira_base / CFG.email / CFG.token / CFG.project_key / CFG.board_id
+from core import *
 
-# 2. 导入客户端
-from core.auth import jira_request, agile_request
+# 查看我今天的任务
+tasks = todo_today()
 
-# 3. PM 操作
-from core import create_epic, create_story, create_feature, add_to_sprint
+# 领任务
+assign_to_me("PROJ-6")
 
-# 4. 研发操作（v1.1）
-from core.dev_ops import todo_today, assign_to_me, smart_transition, add_worklog
+# 状态流转（支持模糊匹配）
+smart_transition("PROJ-6", "doing")   # → In Progress
+
+# 记工时
+add_worklog("PROJ-6", "2h", comment="完成 API 开发")
+
+# 创建 Issue
+from templates.adf_builder import feature_description
+desc = feature_description("实现登录", "POST /auth/login", ["用户服务"], ["✅ 返回 JWT"])
+key = create_feature("实现登录接口", desc, epic_key="PROJ-1")
+add_to_sprint([key])  # 自动加入 active sprint
 ```
 
 ---
 
-## ⚠️ 铁律 (PM 工作流)
+## ⚠️ 铁律
 
-1. **所有 PM 操作直接通过 Jira API** — 禁止在本地创建 Scrum 文件
+1. **描述字段必须用 ADF 格式**（用 `templates/adf_builder.py`）
 2. **三层结构**：Epic → Story → Feature/Task（缺一不可）
-3. **文档附件**直接上传到对应 Jira issue（PRD→Epic, 设计→Feature）
-4. **Issue 创建后立即加入 Sprint**（不自动归入）
-5. **Story↔Feature 关联**用 `Polaris work item link`（不能用 parent 字段）
+3. **Issue 创建后立即加入 Sprint**（不自动归入）
+4. **Story↔Feature 关联**用 `Polaris work item link`（不能用 parent 字段）
+5. **Sprint 操作用 Agile API**（`agile_request`），不是 REST API v3
+6. **批量操作加 `time.sleep(0.3)` 防限流**
 
 ---
 
@@ -84,4 +114,4 @@ Epic (level 1)
 
 ---
 
-*维护者：Kael (IcestoneTech AI PM) + Forge (研发经理) | 最后更新：2026-04-17 v1.2*
+*原作者：Kael | 通用化 & 研发扩展：Forge*

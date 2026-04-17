@@ -1,6 +1,5 @@
 """
 core/attachment_ops.py — 文件附件上传
-IcestoneTech LFX Project
 
 规则：
   PRD 等产品文档  → 上传到对应 Epic issue

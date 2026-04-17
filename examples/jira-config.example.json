@@ -1,0 +1,16 @@
+{
+  "jira_base": "https://your-org.atlassian.net",
+  "email": "you@your-org.com",
+  "project_key": "PROJ",
+  "board_id": 1,
+  "issue_types": {
+    "Epic":        "10000",
+    "Story":       "10008",
+    "Task":        "10054",
+    "Sub-task":    "10055",
+    "Feature":     "10050",
+    "Bug":         "10051",
+    "Fix":         "10052",
+    "Improvement": "10053"
+  }
+}
