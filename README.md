@@ -23,23 +23,21 @@
 jira-skill-distilled/
 ├── README.md              # 本文件 — 快速导航
 ├── core/
+│   ├── config.py          # 🆕 集中配置（env var 覆盖支持）
 │   ├── auth.py            # 认证 & 基础 API 客户端
 │   ├── issue_ops.py       # Issue CRUD 操作
-│   ├── sprint_ops.py      # Sprint 管理
+│   ├── sprint_ops.py      # 🆕 Sprint 管理（auto active sprint）
+│   ├── dev_ops.py         # 🆕 研发日常操作（assign/worklog/JQL shortcuts）
 │   ├── link_ops.py        # Issue 关联 (Polaris, Blocks, Relates)
 │   └── attachment_ops.py  # 文件附件上传
 ├── workflows/
-│   ├── sprint_planning.md # Sprint 规划 SOP
-│   ├── bug_triage.md      # Bug 分类工作流
 │   └── scrum_sop.md       # 完整 Scrum Master SOP
 ├── reference/
 │   ├── issue_types.md     # Issue 类型 & ID 速查
 │   ├── issue_map.md       # LFX Sprint 1 全量 Issue 映射表
-│   ├── link_rules.md      # 关联规则图谱
 │   └── pitfalls.md        # 已知坑 & 解决方案
 └── templates/
-    ├── adf_builder.py     # ADF (Atlassian Document Format) 构造器
-    └── epic_template.py   # Epic/Story/Feature 描述模板
+    └── adf_builder.py     # ADF (Atlassian Document Format) 构造器
 ```
 
 ---
@@ -47,19 +45,18 @@ jira-skill-distilled/
 ## 🚀 快速开始
 
 ```python
-# 1. 配置认证
-import os
-TOKEN = open(os.path.expanduser("~/.hermes/secrets/jira_token")).read().strip()
+# 1. 配置（支持环境变量覆盖）
+from core.config import CFG
+# CFG.jira_base / CFG.email / CFG.token / CFG.project_key / CFG.board_id
 
 # 2. 导入客户端
 from core.auth import jira_request, agile_request
 
-# 3. 搜索 Issues
-result, _ = jira_request("POST", "/search/jql", {
-    "jql": "project = LFX AND sprint = 103",
-    "maxResults": 50,
-    "fields": ["summary", "status", "issuetype"]
-})
+# 3. PM 操作
+from core import create_epic, create_story, create_feature, add_to_sprint
+
+# 4. 研发操作（v1.1）
+from core.dev_ops import todo_today, assign_to_me, smart_transition, add_worklog
 ```
 
 ---
@@ -87,4 +84,4 @@ Epic (level 1)
 
 ---
 
-*维护者：Kael (IcestoneTech AI PM) | 最后更新：2026-04-17*
+*维护者：Kael (IcestoneTech AI PM) + Forge (研发经理) | 最后更新：2026-04-17 v1.1*
