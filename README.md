@@ -84,4 +84,4 @@ Epic (level 1)
 
 ---
 
-*维护者：Kael (IcestoneTech AI PM) + Forge (研发经理) | 最后更新：2026-04-17 v1.1*
+*维护者：Kael (IcestoneTech AI PM) + Forge (研发经理) | 最后更新：2026-04-17 v1.2*
