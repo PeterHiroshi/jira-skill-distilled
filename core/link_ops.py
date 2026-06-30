@@ -21,17 +21,21 @@ from .auth import jira_request
 def link_feature_to_story(feature_key: str, story_key: str):
     """
     Feature 实现 Story 的关联（Polaris work item link）
-    
-    方向关键：
-      - inward = Story  → Story 页面显示 "is implemented by ← Feature" ✅
-      - outward = Feature → Feature 页面显示 "implements → Story" ✅
-    
+
+    方向关键（经实测校正 2026-06）：本站点 "Polaris work item link" 的语义是
+    ``inwardIssue`` 读作 "implements"，``outwardIssue`` 读作 "is implemented by"。
+    因此 **Feature 必须是 inwardIssue**：
+      - inward = Feature → Feature 页面显示 "implements → Story" ✅
+      - outward = Story  → Story 页面显示 "is implemented by ← Feature" ✅
+
+    （旧实现把两者写反，导致 Story 页面错误显示 "implements → Feature"。）
+
     ⚠️ 不要用 parent 字段！Feature 和 Story 同为 level 0，parent 会报错。
     """
     result, err = jira_request("POST", "/issueLink", {
         "type": {"name": "Polaris work item link"},
-        "inwardIssue": {"key": story_key},    # Story: "is implemented by"
-        "outwardIssue": {"key": feature_key}, # Feature: "implements"
+        "inwardIssue": {"key": feature_key},  # Feature: "implements"
+        "outwardIssue": {"key": story_key},   # Story: "is implemented by"
     })
     if err:
         raise RuntimeError(f"link_feature_to_story failed: {err}")

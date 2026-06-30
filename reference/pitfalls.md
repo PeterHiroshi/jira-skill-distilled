@@ -11,12 +11,14 @@
 "Given parent work item does not belong to appropriate hierarchy."
 ```
 
-**解**：用 `Polaris work item link` issueLink 替代：
+**解**：用 `Polaris work item link` issueLink 替代。⚠️ 方向经实测校正：本站点
+`inwardIssue` 读作 "implements"，`outwardIssue` 读作 "is implemented by"，所以
+**Feature 必须是 inwardIssue**（旧文档写反，会导致 Story 显示 "implements → Feature"）：
 ```python
 jira_request("POST", "/issueLink", {
     "type": {"name": "Polaris work item link"},
-    "inwardIssue":  {"key": story_key},    # "is implemented by"
-    "outwardIssue": {"key": feature_key},  # "implements"
+    "inwardIssue":  {"key": feature_key},  # Feature: "implements"
+    "outwardIssue": {"key": story_key},    # Story:   "is implemented by"
 })
 ```
 
